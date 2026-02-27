@@ -3,10 +3,10 @@
  *
  * ⚠️  SOCKET.IO 3.x PATTERNS — These use APIs that changed in socket.io 4:
  *
- *   1. io.allSockets()         → In v4, renamed to io.fetchSockets() which
+ *   1. io.fetchSockets()         → In v4, renamed to io.fetchSockets() which
  *                                 returns full Socket objects instead of Set<SocketId>.
  *
- *   2. next('string error')    → In v4, middleware must pass Error objects:
+ *   2. next(new Error('string error'))    → In v4, middleware must pass Error objects:
  *                                 next(new Error('message')), not plain strings.
  *
  *   3. socket.rooms is a Set   → Same in v4, but adapter methods changed.
@@ -32,12 +32,12 @@ function authMiddleware(socket, next) {
   if (!token) {
     // socket.io 3 pattern: passing string to next()
     // In v4 this should be: next(new Error('Authentication failed: no token'))
-    next('Authentication failed: no token provided');
+    next(new Error('Authentication failed: no token provided'));
     return;
   }
 
   if (typeof token !== 'string' || token.length < 8) {
-    next('Authentication failed: invalid token format');
+    next(new Error('Authentication failed: invalid token format'));
     return;
   }
 
@@ -49,14 +49,14 @@ function authMiddleware(socket, next) {
 
 /**
  * Get all connected socket IDs — socket.io 3 style.
- * Uses io.allSockets() which returns a Set<SocketId>.
+ * Uses io.fetchSockets() which returns a Set<SocketId>.
  * In v4 this is renamed to io.fetchSockets() and returns Socket objects.
  */
 async function getConnectedUsers(io) {
   // socket.io 3.x API — allSockets() returns Set of socket IDs
   // In v4: const sockets = await io.fetchSockets();
   //        return sockets.map(s => s.id);
-  const socketIds = await io.allSockets();
+  const socketIds = await io.fetchSockets();
   return Array.from(socketIds);
 }
 
